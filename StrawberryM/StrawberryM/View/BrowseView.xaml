@@ -1,0 +1,43 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="StrawberryM.View.BrowseView"
+             xmlns:local="clr-namespace:StrawberryM.ViewModel">
+
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="9*"/>
+        </Grid.RowDefinitions>
+
+        <SearchBar Placeholder="찾을 노래 제목을 입력하세요" 
+                   HorizontalOptions="Fill"
+                    VerticalOptions="StartAndExpand"
+                   TextColor="Black"
+                   Text="{Binding SearchText}"
+                   SearchCommand="{Binding searchCommand}"
+                   Grid.Row="0"
+                   Margin="5"/>
+
+
+        <ListView ItemsSource="{Binding youtubeSearch}"
+                  Grid.Row="1"
+                  Margin="10">
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <TextCell Text="{Binding title}"
+                              TextColor="Black"
+                                Command="{Binding downloadCommand}"
+                                CommandParameter="{Binding title}">
+
+                    </TextCell>
+
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+
+    </Grid>
+
+
+</ContentPage>
