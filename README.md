@@ -28,15 +28,15 @@ C# Xamarin을 이용한 안드로이드 음악 재생 앱
 ### 작동 모습
 #### 내 노래 목록, 현재 재생곡, 노래 검색
 <div>
-  <image width="200" src=https://user-images.githubusercontent.com/59993347/94995037-750f2880-05d6-11eb-8bf1-b469dc226ab8.jpg>
-  <image width="200" src=https://user-images.githubusercontent.com/59993347/94995033-72acce80-05d6-11eb-8a37-818ba05b78ac.jpg>
-  <image width="200" src=https://user-images.githubusercontent.com/59993347/94995039-75a7bf00-05d6-11eb-9993-6e024e199527.jpg>
+  <image width="300" src=https://user-images.githubusercontent.com/59993347/94995037-750f2880-05d6-11eb-8bf1-b469dc226ab8.jpg>
+  <image width="300" src=https://user-images.githubusercontent.com/59993347/94995033-72acce80-05d6-11eb-8a37-818ba05b78ac.jpg>
+  <image width="300" src=https://user-images.githubusercontent.com/59993347/94995039-75a7bf00-05d6-11eb-9993-6e024e199527.jpg>
 </div>
 
 #### 모드 변경 알림, 노티피케이션, 플라이아웃 메뉴
 <div>
-  <image width="200" src=https://user-images.githubusercontent.com/59993347/94995035-73ddfb80-05d6-11eb-8a45-f76fd4378ca6.jpg>
-  <image width="200" src=https://user-images.githubusercontent.com/59993347/94995036-74769200-05d6-11eb-9309-19f858c5ac9e.jpg>
-  <image width="200" src=https://user-images.githubusercontent.com/59993347/94995038-75a7bf00-05d6-11eb-8b26-a920283a490d.jpg>
+  <image width="300" src=https://user-images.githubusercontent.com/59993347/94995035-73ddfb80-05d6-11eb-8a45-f76fd4378ca6.jpg>
+  <image width="300" src=https://user-images.githubusercontent.com/59993347/94995036-74769200-05d6-11eb-9309-19f858c5ac9e.jpg>
+  <image width="300" src=https://user-images.githubusercontent.com/59993347/94995038-75a7bf00-05d6-11eb-8b26-a920283a490d.jpg>
 </div>
 
