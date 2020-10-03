@@ -1,5 +1,5 @@
 ﻿using System;
-using Android.Media;
+using Plugin.SimpleAudioPlayer;
 
 namespace StrawberryM.Model
 {
@@ -8,7 +8,7 @@ namespace StrawberryM.Model
     /// </summary>
     public static class NowPlay
     {
-        public static MediaPlayer Audio { get; set; } = new MediaPlayer();
+        public static ISimpleAudioPlayer Audio { get; set; }
         public static string Title { get; set; } = string.Empty;
         public static TimeSpan NowTime { get; set; }
         public static TimeSpan TotalTime { get; set; }

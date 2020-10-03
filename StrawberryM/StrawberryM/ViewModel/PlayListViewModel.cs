@@ -3,7 +3,6 @@ using System;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Threading;
-using System.Threading.Tasks;
 using Xamarin.Forms;
 
 namespace StrawberryM.ViewModel
@@ -12,12 +11,11 @@ namespace StrawberryM.ViewModel
     {
         private Thread QueueThread;
 
-        public string searchPlayList { get; set; }
         public Command LoadItemsCommand { get; }
         public Command playCommand { get; }
         public Command deleteCommand { get; }
         public ObservableCollection<PlayList> playListCollection { get; set; }
-        public static int idx;
+        public int idx;
 
         public PlayListViewModel()
         {
@@ -72,8 +70,8 @@ namespace StrawberryM.ViewModel
             DirectoryInfo directoryInfo = new DirectoryInfo(musicDirectory);
 
             FileInfo[] files = directoryInfo.GetFiles();
-            
-            foreach(var i in files)
+
+            foreach (FileInfo i in files)
             {
                 PlayListCollection.Add(new PlayList()
                 {
@@ -111,13 +109,11 @@ namespace StrawberryM.ViewModel
                         string songName = playListQueue.Dequeue();
                         PlayListCollection.Add(new PlayList()
                         {
-                            index = idx,
+                            index = PlayListCollection.Count,
                             name = songName,
                             playCommand = this.playCommand,
                             deleteCommand = this.deleteCommand
                         });
-                        idx++;
-
 
                     }
 

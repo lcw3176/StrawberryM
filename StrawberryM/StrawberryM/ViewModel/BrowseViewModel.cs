@@ -116,7 +116,6 @@ namespace StrawberryM.ViewModel
                         await youtube.Videos.Streams.DownloadAsync(streamInfo, musicDirectory + "/" + videoName + soundExtension);
                         EnqueuePlayList(videoName);
                         isBusy = false;
-
                     }
                 }
 

@@ -1,8 +1,11 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
-using Android.Media;
+using System.Threading.Tasks;
+using Org.Apache.Http.Impl.Client;
+using Plugin.SimpleAudioPlayer;
 using StrawberryM.Model;
 using StrawberryM.Services;
 using Xamarin.Forms;
@@ -29,7 +32,7 @@ namespace StrawberryM.ViewModel
         public Command beforeSongCommand { get; set; }
         public Command nextSongCommand { get; set; }
 
-        public MediaPlayer audio
+        public ISimpleAudioPlayer audio
         {
             get { return NowPlay.Audio; }
             set 
@@ -155,6 +158,7 @@ namespace StrawberryM.ViewModel
         {
             if(audio != null)
             {
+                
                 int nextIndex = PlayListCollection.FirstOrDefault(e => e.name == title).index + 1;
 
                 // 만약 마지막 노래 재생이 끝난 상황이라면
@@ -220,7 +224,7 @@ namespace StrawberryM.ViewModel
         /// </summary>
         private void sliderDragExecuteCommand()
         {
-            audio.SeekTo((int)sliderValue);
+            audio.Seek(sliderValue);
         }
 
 
@@ -249,7 +253,7 @@ namespace StrawberryM.ViewModel
                 rotateController.Set();
 
                 DependencyService.Get<IFocus>().RequestFocus();
-                audio.Start();
+                audio.Play();
                 playButtonImage = "stop.jpg";
             }
 
@@ -331,29 +335,21 @@ namespace StrawberryM.ViewModel
         /// <param name="title"></param>
         private void PlayAudio(string title)
         {
-
-            string rootPath = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
-            string musicDirectory = Path.Combine(rootPath, "playList");
-            string filePath = Path.Combine(musicDirectory, title + soundExtension);
-
             DependencyService.Get<IFocus>().ReleaseAudioResources();
 
-            audio.Reset();
-            audio.SetDataSource(filePath);
-            audio.Prepare();
-            audio.Start();
-            
+            audio = CrossSimpleAudioPlayer.Current;
+            audio.Load(GetStreamFromFile(title));
+            audio.Play();
+
             DependencyService.Get<IFocus>().RequestFocus();
             playButtonImage = "stop.jpg";
 
+            totalTime = TimeSpan.FromSeconds(audio.Duration);
+            sliderMax = totalTime.TotalSeconds;
 
-
-            totalTime = TimeSpan.FromMilliseconds(audio.Duration);
-            sliderMax = totalTime.TotalMilliseconds;
-            
-            Device.StartTimer(TimeSpan.FromSeconds(1), () =>
+            Task.Run(() => 
             {
-                return ChangeViewInfo();
+                ChangeViewInfo();
             });
 
             isRotate = true;
@@ -362,39 +358,53 @@ namespace StrawberryM.ViewModel
             SongInfoChanged();
         }
 
+        private System.IO.Stream GetStreamFromFile(string filename)
+        {
+            string rootPath = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+            string musicDirectory = Path.Combine(rootPath, "playList");
+            string filePath = Path.Combine(musicDirectory, filename + soundExtension);
+
+            var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
+
+            return stream;
+        }
+
 
         /// <summary>
         /// 노래 진행상황 view와 동기화, 노래 재생 끝나면 다음 곡으로 체인지
         /// </summary>
-        private bool ChangeViewInfo()
+        private void ChangeViewInfo()
         {
-            if(audio == null)
+            while (true)
             {
-                return false;
-            }
-
-            if (audio.IsPlaying)
-            {
-                nowTime = TimeSpan.FromMilliseconds(audio.CurrentPosition);
-                sliderValue = nowTime.TotalMilliseconds;
-
-                if (NowAppState.state.Equals(AppState.onClose))
+                if (audio == null)
                 {
-                    return false;
+                    break;
                 }
-               
-            }
 
-            else
-            {
-                if (sliderValue >= sliderMax - 1000)
+                if (audio.IsPlaying)
                 {
-                    ContinueNext();
-                    return false;
-                }
-            }
+                    nowTime = TimeSpan.FromSeconds(audio.CurrentPosition);
+                    sliderValue = nowTime.TotalSeconds;
 
-            return true;
+                    if (NowAppState.state.Equals(AppState.onClose))
+                    {
+                        break;
+                    }
+
+                }
+
+                else
+                {
+                    if (sliderValue >= sliderMax - 1)
+                    {
+                        ContinueNext();
+                        break;
+                    }
+                }
+
+                Thread.Sleep(1000);
+            }
         }
 
         /// <summary>
@@ -458,7 +468,7 @@ namespace StrawberryM.ViewModel
                     notificationManager.ScheduleNotification(NowAppState.state, title);
                 }
 
-                // 포커즈 잃엇거나 이어폰 분리됫을 시
+                // 포커즈 잃었거나 이어폰 분리 시
                 if (resourceName.Equals("stopNow"))
                 {
                     StopAudio();
@@ -493,7 +503,12 @@ namespace StrawberryM.ViewModel
         /// </summary>
         public void AppOnResume()
         {
-            sliderValue = nowTime.TotalMilliseconds;
+            if(audio == null)
+            {
+                return;
+            }
+
+            sliderValue = nowTime.TotalSeconds;
 
             if (audio.IsPlaying)
             {
@@ -510,6 +525,11 @@ namespace StrawberryM.ViewModel
         /// </summary>
         public void AppOnSleep()
         {
+            if (audio == null)
+            {
+                return;
+            }
+
             if (!string.IsNullOrEmpty(title))
             {
                 isRotate = false;

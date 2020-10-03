@@ -12,7 +12,7 @@ namespace StrawberryM.Droid
         {
             if (intent?.Extras != null)
             {
-                string resourceName = intent.Extras.GetString(Notification.ResourceName);
+                string resourceName = intent.Extras.GetString(ForegroundService.ResourceName);
                 DependencyService.Get<INotificationManager>().ReceiveNotification(resourceName);
 
             }

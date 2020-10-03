@@ -29,33 +29,7 @@ namespace StrawberryM.Droid
             Xamarin.Essentials.Platform.Init(this, savedInstanceState);
             Forms.Init(this, savedInstanceState);
             LoadApplication(new App());
-            CreateNotificationFromIntent(Intent);
-
-            Intent intent = new Intent(this, typeof(MediaPlayerService));
-            StartService(intent);
         }
-
-        public override void OnRequestPermissionsResult(int requestCode, string[] permissions, [GeneratedEnum] Android.Content.PM.Permission[] grantResults)
-        {
-            Xamarin.Essentials.Platform.OnRequestPermissionsResult(requestCode, permissions, grantResults);
-
-            base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
-        }
-
-        protected override void OnNewIntent(Intent intent)
-        {
-            CreateNotificationFromIntent(intent);
-        }
-
-        void CreateNotificationFromIntent(Intent intent)
-        {
-            if (intent?.Extras != null)
-            {
-                string resoureName = intent.Extras.GetString(Notification.ResourceName);
-                DependencyService.Get<INotificationManager>().ReceiveNotification(resoureName);
-            }
-        }
-
     }
 
 }

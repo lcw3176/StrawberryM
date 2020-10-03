@@ -5,10 +5,10 @@ using StrawberryM.Droid;
 using StrawberryM.Services;
 using Xamarin.Forms;
 
-[assembly: Dependency(typeof(AudioFocusManager))]
+[assembly: Dependency(typeof(StrawberryM.Droid.AudioFocus))]
 namespace StrawberryM.Droid
 {
-    class AudioFocusManager : IFocus
+    class AudioFocus : IFocus
     {
         AudioManager manager;
         AudioManager.IOnAudioFocusChangeListener listener;
@@ -17,11 +17,11 @@ namespace StrawberryM.Droid
         private class FocusListener : Java.Lang.Object, Android.Media.AudioManager.IOnAudioFocusChangeListener
         {
 
-            public void OnAudioFocusChange([GeneratedEnum] AudioFocus focusChange)
+            public void OnAudioFocusChange([GeneratedEnum] Android.Media.AudioFocus focusChange)
             {
                 switch (focusChange)
                 {
-                    case AudioFocus.Loss:
+                    case Android.Media.AudioFocus.Loss:
                         DependencyService.Get<INotificationManager>().ReceiveNotification("stopNow");
                         break;
                     default:
@@ -35,7 +35,7 @@ namespace StrawberryM.Droid
             listener = new FocusListener();
 
             manager = (AudioManager)Android.App.Application.Context.GetSystemService(Context.AudioService);
-            manager.RequestAudioFocus(listener, Stream.Music, AudioFocus.Gain);
+            manager.RequestAudioFocus(listener, Stream.Music, Android.Media.AudioFocus.Gain);
         }
 
 

@@ -6,16 +6,16 @@
 
     <FlyoutItem Shell.TabBarIsVisible="False"
                 FlyoutDisplayOptions="AsMultipleItems">
-        <ShellContent Title="내 노래 목록">
-            <view:PlayListView/>
+        <ShellContent Title="내 노래 목록"
+                      ContentTemplate="{DataTemplate view:PlayListView}">
         </ShellContent>
 
         <ShellContent Title="현재 재생곡">
             <view:NowPlayingView/>
         </ShellContent>
 
-        <ShellContent Title="노래 검색">
-            <view:BrowseView/>
+        <ShellContent Title="노래 검색"
+                      ContentTemplate="{DataTemplate view:BrowseView}">
         </ShellContent>
 
     </FlyoutItem>
