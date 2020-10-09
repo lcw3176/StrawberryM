@@ -3,14 +3,13 @@ using System;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 using Xamarin.Forms;
 
 namespace StrawberryM.ViewModel
 {
     class PlayListViewModel : BaseViewModel
     {
-        private Thread QueueThread;
-
         public Command LoadItemsCommand { get; }
         public Command playCommand { get; }
         public Command deleteCommand { get; }
@@ -23,10 +22,9 @@ namespace StrawberryM.ViewModel
             playCommand = new Command(playExecuteCommand);
             deleteCommand = new Command(deleteExecuteCommand);
 
+            Task.Run(() => ExecuteMessage());
+            
             LoadSong();
-
-            QueueThread = new Thread(ExecuteMessage);
-            QueueThread.Start();
         }
 
         /// <summary>

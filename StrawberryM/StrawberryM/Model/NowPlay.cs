@@ -8,7 +8,7 @@ namespace StrawberryM.Model
     /// </summary>
     public static class NowPlay
     {
-        public static ISimpleAudioPlayer Audio { get; set; }
+        public static ISimpleAudioPlayer Audio { get; set; } = CrossSimpleAudioPlayer.Current;
         public static string Title { get; set; } = string.Empty;
         public static TimeSpan NowTime { get; set; }
         public static TimeSpan TotalTime { get; set; }

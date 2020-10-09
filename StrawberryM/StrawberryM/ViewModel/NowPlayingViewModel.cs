@@ -1,10 +1,8 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using Org.Apache.Http.Impl.Client;
 using Plugin.SimpleAudioPlayer;
 using StrawberryM.Model;
 using StrawberryM.Services;
@@ -15,14 +13,13 @@ namespace StrawberryM.ViewModel
     class NowPlayingViewModel : BaseViewModel
     {
         private ManualResetEvent rotateController;
+        private ManualResetEvent sliderController;
 
         private double Rotation = 0;
         private double SliderMax = 1;
         private double SliderValue = 0;
         private string PlayButtonImage = "stop.jpg";
         private bool isRotate = false;
-        Thread rotationThread;
-        Thread changeSongThread;
         INotificationManager notificationManager;
 
 
@@ -141,12 +138,24 @@ namespace StrawberryM.ViewModel
             nextSongCommand = new Command(nextSongExecuteCommand);
 
             rotateController = new ManualResetEvent(false);
+            sliderController = new ManualResetEvent(false);
 
-            rotationThread = new Thread(RotateView);
-            rotationThread.Start();
+            Task.Run(() => RotateView());
+            Task.Run(() => DequeueSong());
+            Task.Run(() => ChangeViewInfo());
 
-            changeSongThread = new Thread(DequeueSong);
-            changeSongThread.Start();
+            audio.PlaybackEnded += Audio_PlaybackEnded;
+        }
+
+        /// <summary>
+        /// 오디오 종료 시 다음곡 넘김
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void Audio_PlaybackEnded(object sender, EventArgs e)
+        {
+            isRotate = false;
+            ContinueNext();
         }
 
 
@@ -300,7 +309,7 @@ namespace StrawberryM.ViewModel
         }
 
         /// <summary>
-        /// 노래 플레이시 화면에 lp판 회전 애니메이션, label 움직이는 효과
+        /// 노래 플레이시 화면에 lp판 회전 애니메이션
         /// </summary>
         private void RotateView()
         {
@@ -341,24 +350,21 @@ namespace StrawberryM.ViewModel
             audio.Load(GetStreamFromFile(title));
             audio.Play();
 
+            
             DependencyService.Get<IFocus>().RequestFocus();
             playButtonImage = "stop.jpg";
 
             totalTime = TimeSpan.FromSeconds(audio.Duration);
             sliderMax = totalTime.TotalSeconds;
 
-            Task.Run(() => 
-            {
-                ChangeViewInfo();
-            });
-
             isRotate = true;
             rotateController.Set();
-            
+            sliderController.Set();
+
             SongInfoChanged();
         }
 
-        private System.IO.Stream GetStreamFromFile(string filename)
+        private Stream GetStreamFromFile(string filename)
         {
             string rootPath = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
             string musicDirectory = Path.Combine(rootPath, "playList");
@@ -371,18 +377,13 @@ namespace StrawberryM.ViewModel
 
 
         /// <summary>
-        /// 노래 진행상황 view와 동기화, 노래 재생 끝나면 다음 곡으로 체인지
+        /// 노래 진행상황 view와 동기화( 슬라이더 동작 ) 
         /// </summary>
         private void ChangeViewInfo()
         {
             while (true)
             {
-                if (audio == null)
-                {
-                    break;
-                }
-
-                if (audio.IsPlaying)
+                while (audio.IsPlaying)
                 {
                     nowTime = TimeSpan.FromSeconds(audio.CurrentPosition);
                     sliderValue = nowTime.TotalSeconds;
@@ -392,18 +393,13 @@ namespace StrawberryM.ViewModel
                         break;
                     }
 
+                    Thread.Sleep(1000);
                 }
 
-                else
-                {
-                    if (sliderValue >= sliderMax - 1)
-                    {
-                        ContinueNext();
-                        break;
-                    }
-                }
 
-                Thread.Sleep(1000);
+                sliderController.Reset();
+                sliderController.WaitOne(Timeout.Infinite);
+
             }
         }
 
@@ -439,42 +435,39 @@ namespace StrawberryM.ViewModel
         private void ShowNotification(string resourceName)
         {
 
-            Device.BeginInvokeOnMainThread(() => {
+            if(string.IsNullOrEmpty(resourceName))
+            {
+                return;
+            }
+            
+            if (resourceName.Equals("playButton"))
+            {
+                playStateChangeCommand();
+            }
+            
+            if (resourceName.Equals("beforeButton"))
+            {
+                beforeSongExecuteCommand();
+            }
+            
+            if (resourceName.Equals("nextButton"))
+            {
+                nextSongExecuteCommand();
+            }
+            
+            if (resourceName.Equals("closeButton"))
+            {
+                CloseCommand();
+                NowAppState.state = AppState.onClose;
+                notificationManager.ScheduleNotification(NowAppState.state, title);
+            }
+            
+            // 포커즈 잃었거나 이어폰 분리 시
+            if (resourceName.Equals("stopNow"))
+            {
+                StopAudio();
+            }
 
-                if(string.IsNullOrEmpty(resourceName))
-                {
-                    return;
-                }
-
-                if (resourceName.Equals("playButton"))
-                {
-                    playStateChangeCommand();
-                }
-
-                if (resourceName.Equals("beforeButton"))
-                {
-                    beforeSongExecuteCommand();
-                }
-
-                if (resourceName.Equals("nextButton"))
-                {
-                    nextSongExecuteCommand();
-                }
-
-                if (resourceName.Equals("closeButton"))
-                {
-                    CloseCommand();
-                    NowAppState.state = AppState.onClose;
-                    notificationManager.ScheduleNotification(NowAppState.state, title);
-                }
-
-                // 포커즈 잃었거나 이어폰 분리 시
-                if (resourceName.Equals("stopNow"))
-                {
-                    StopAudio();
-                }
-
-            });
         }
 
         /// <summary>
