@@ -15,7 +15,7 @@ namespace StrawberryM.ViewModel
         protected static Queue<string> nowPlayQueue = new Queue<string>();
         protected static ManualResetEvent playController = new ManualResetEvent(false);
         
-        protected string soundExtension = ".webm";
+        protected string soundExtension = ".mp4";
 
         /// <summary>
         /// 지금 재생할 곡 등록

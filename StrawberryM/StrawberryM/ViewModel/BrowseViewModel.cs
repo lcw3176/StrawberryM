@@ -105,7 +105,7 @@ namespace StrawberryM.ViewModel
                     isBusy = true;
                     var youtube = new YoutubeClient();
                     var streamManifest = await youtube.Videos.Streams.GetManifestAsync(videoId);
-                    var streamInfo = streamManifest.GetAudioOnly().WithHighestBitrate();
+                    var streamInfo = streamManifest.GetMuxed().WithHighestVideoQuality();
                     Regex pattern = new Regex(@"[\/:*?<>|]");
                     videoName = pattern.Replace(videoName, string.Empty);
                     string rootPath = Environment.GetFolderPath(Environment.SpecialFolder.Personal);

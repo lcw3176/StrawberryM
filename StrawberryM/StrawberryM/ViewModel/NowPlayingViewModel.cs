@@ -260,6 +260,7 @@ namespace StrawberryM.ViewModel
             {
                 isRotate = true;
                 rotateController.Set();
+                sliderController.Set();
 
                 DependencyService.Get<IFocus>().RequestFocus();
                 audio.Play();
