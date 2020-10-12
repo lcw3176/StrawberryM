@@ -259,12 +259,13 @@ namespace StrawberryM.ViewModel
             else
             {
                 isRotate = true;
-                rotateController.Set();
-                sliderController.Set();
 
                 DependencyService.Get<IFocus>().RequestFocus();
                 audio.Play();
                 playButtonImage = "stop.jpg";
+
+                rotateController.Set();
+                sliderController.Set();
             }
 
             SongInfoChanged();
