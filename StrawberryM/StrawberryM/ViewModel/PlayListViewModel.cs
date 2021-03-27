@@ -1,4 +1,5 @@
 ﻿using StrawberryM.Model;
+using StrawberryM.Services;
 using System;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -11,83 +12,89 @@ namespace StrawberryM.ViewModel
     class PlayListViewModel : BaseViewModel
     {
         public Command LoadItemsCommand { get; }
-        public Command playCommand { get; }
-        public Command deleteCommand { get; }
-        public ObservableCollection<PlayList> playListCollection { get; set; }
-        public int idx;
+        public Command playCommand { get; set; }
+        public Command deleteCommand { get; set; }
+        public ObservableCollection<PlayList> playListCollection 
+        {
+            get { return BasePlayListCollection; }
+            set 
+            {
+                BasePlayListCollection = value;
+                OnPropertyChanged("playListCollection");
+            }
+        }
+
+        private FileService service = new FileService();
 
         public PlayListViewModel()
         {
-            playListCollection = PlayListCollection;
-            playCommand = new Command(playExecuteCommand);
-            deleteCommand = new Command(deleteExecuteCommand);
+
+            playListCollection = BasePlayListCollection;
+            playCommand = new Command(PlayExecuteCommand);
+            deleteCommand = new Command(DeleteExecuteCommand);
 
             Task.Run(() => ExecuteMessage());
+            service.RequestPermission();
+
+            Device.StartTimer(new TimeSpan(0, 0, 1), () => {
+
+                if(service.CheckPermission())
+                {
+                    InitDisplay();
+                    return false;   
+                }
+
+                return true;
+            });
+
+        }
+
+        /// <summary>
+        /// 재생목록 로딩 후 디스플레이
+        /// </summary>
+        private void InitDisplay()
+        {
+            int idx = 0;
+            playListCollection.Clear();
+            FileInfo[] result = service.GetSongs();
             
-            LoadSong();
+            if(result != null)
+            {
+                foreach (FileInfo i in result)
+                {
+                    playListCollection.Add(new PlayList()
+                    {
+                        index = idx,
+                        name = i.Name.Replace(NowPlay.soundExtension, string.Empty),
+                        playCommand = this.playCommand,
+                        deleteCommand = this.deleteCommand
+                    });
+                    idx++;
+
+                }
+            }
+
         }
 
         /// <summary>
         /// 노래 삭제
         /// </summary>
         /// <param name="songName"></param>
-        private void deleteExecuteCommand(object songName)
+        private void DeleteExecuteCommand(object songName)
         {
-            string rootPath = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
-            string musicDirectory = Path.Combine(rootPath, "playList");
-            string deletePath = Path.Combine(musicDirectory, songName.ToString() + soundExtension);
-
-            FileInfo file = new FileInfo(deletePath);
-
-            if(file.Exists)
+            if(service.DeleteSong(songName.ToString(), NowPlay.soundExtension))
             {
-                file.Delete();
-            }
-
-            LoadSong();
+                InitDisplay();
+            }   
         }
 
-        /// <summary>
-        /// 재생목록 불러오기
-        /// </summary>
-        private void LoadSong()
-        {
-            idx = 0;
-            string rootPath = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
-            string musicDirectory = Path.Combine(rootPath, "playList");
-
-            if (!Directory.Exists(musicDirectory))
-            {
-                Directory.CreateDirectory(musicDirectory);
-
-                return;
-            }
-
-            PlayListCollection.Clear();
-
-            DirectoryInfo directoryInfo = new DirectoryInfo(musicDirectory);
-
-            FileInfo[] files = directoryInfo.GetFiles();
-
-            foreach (FileInfo i in files)
-            {
-                PlayListCollection.Add(new PlayList()
-                {
-                    index = idx,
-                    name = i.Name.Replace(soundExtension, string.Empty),
-                    playCommand = this.playCommand,
-                    deleteCommand = this.deleteCommand
-                });
-                idx++;
-
-            }
-        }
+       
 
         /// <summary>
         /// 노래 재생큐에 등록
         /// </summary>
         /// <param name="fileName"></param>
-        private void playExecuteCommand(object fileName)
+        private void PlayExecuteCommand(object fileName)
         {
             EnqueueNowPlay(fileName.ToString());
         }
@@ -105,9 +112,9 @@ namespace StrawberryM.ViewModel
                     while (playListQueue.Count > 0)
                     {
                         string songName = playListQueue.Dequeue();
-                        PlayListCollection.Add(new PlayList()
+                        BasePlayListCollection.Add(new PlayList()
                         {
-                            index = PlayListCollection.Count,
+                            index = BasePlayListCollection.Count,
                             name = songName,
                             playCommand = this.playCommand,
                             deleteCommand = this.deleteCommand

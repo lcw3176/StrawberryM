@@ -17,6 +17,7 @@
                    TextColor="Black"
                    Text="{Binding SearchText}"
                    SearchCommand="{Binding searchCommand}"
+                   SearchCommandParameter="{Binding SearchText}"
                    Grid.Row="0"
                    Margin="5"/>
 

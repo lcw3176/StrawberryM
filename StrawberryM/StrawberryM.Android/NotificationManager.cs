@@ -1,22 +1,12 @@
 ﻿using System;
-
-using Android.App;
-using Android.Content;
-using Android.OS;
-using Android.Support.V4.App;
 using Xamarin.Forms;
-using Android.Widget;
-
-using AndroidApp = Android.App.Application;
-using Android.Graphics;
-using Xamarin.Essentials;
 using StrawberryM.Model;
 using StrawberryM.Services;
 
-[assembly: Dependency(typeof(StrawberryM.Droid.Notification))]
+[assembly: Dependency(typeof(StrawberryM.Droid.NotificationManager))]
 namespace StrawberryM.Droid
 {
-    class Notification : INotificationManager 
+    class NotificationManager : INotificationManager 
     {
 
         public event EventHandler NotificationReceived;
@@ -27,12 +17,12 @@ namespace StrawberryM.Droid
 
             if (state.Equals(AppState.onSleep))
             {
-                DependencyService.Get<IForeground>().StartService();
+                DependencyService.Get<IForegroundHelper>().StartService();
             }
 
             if (state.Equals(AppState.onStart) || state.Equals(AppState.onClose) || state.Equals(AppState.onResume))
             {
-                DependencyService.Get<IForeground>().StopService();
+                DependencyService.Get<IForegroundHelper>().StopService();
             }
 
         }

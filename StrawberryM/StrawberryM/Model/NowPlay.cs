@@ -12,7 +12,9 @@ namespace StrawberryM.Model
         public static string Title { get; set; } = string.Empty;
         public static TimeSpan NowTime { get; set; }
         public static TimeSpan TotalTime { get; set; }
-        public static PlayMode playMode { get; set; } = PlayMode.Whole;
+        public static PlayMode playMode { get; set; }
+        public static string path { get; set; }
+        public const string soundExtension = ".mp4";
 
     }
 

@@ -1,0 +1,56 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="StrawberryM.View.RankView">
+
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="종합"
+                     Order="Secondary"
+                     Priority="0"
+                     Command="{Binding ChangeGerne}"
+                     CommandParameter="total"/>
+        <ToolbarItem Text="해외"
+                     Order="Secondary"
+                     Priority="1"
+                     Command="{Binding ChangeGerne}"
+                     CommandParameter="foreign"/>
+        <ToolbarItem Text="트로트"
+                     Order="Secondary"
+                     Priority="2"
+                     Command="{Binding ChangeGerne}"
+                     CommandParameter="trot"/>
+    </ContentPage.ToolbarItems>
+    <ListView ItemsSource="{Binding RankCollection}">
+        <ListView.RowHeight>
+            <OnPlatform x:TypeArguments="x:Int32">
+                <On Platform="Android">80</On>
+            </OnPlatform>
+        </ListView.RowHeight>
+        <ListView.ItemTemplate>
+            <DataTemplate>
+                <ViewCell>
+                    <StackLayout Orientation="Horizontal"
+                                     VerticalOptions="Center"
+                                     Margin="5">
+                        <Button Text="{Binding rank}"
+                                    FontSize="Medium"
+                                    WidthRequest="60"
+                                    BackgroundColor="Transparent"
+                                    BorderWidth="0"
+                                    Command="{Binding SearchCommand}"
+                                    CommandParameter="{Binding rank}"/>
+
+                        <StackLayout Orientation="Vertical"
+                                         Margin="2">
+                            <Label Text="{Binding singer}"
+                                   FontSize="Micro"/>
+                            <Label Text="{Binding song}"
+                                       FontSize="Small"/>
+                        </StackLayout>
+                    </StackLayout>
+                </ViewCell>
+            </DataTemplate>
+        </ListView.ItemTemplate>
+    </ListView>
+
+</ContentPage>

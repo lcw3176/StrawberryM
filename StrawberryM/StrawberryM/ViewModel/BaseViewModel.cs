@@ -10,12 +10,12 @@ namespace StrawberryM.ViewModel
     {
         protected static Queue<string> playListQueue = new Queue<string>();
         protected static ManualResetEvent Controller = new ManualResetEvent(false);
-        public static ObservableCollection<PlayList> PlayListCollection { get; set; } =  new ObservableCollection<PlayList>();
+        public static ObservableCollection<PlayList> BasePlayListCollection { get; set; } =  new ObservableCollection<PlayList>();
 
         protected static Queue<string> nowPlayQueue = new Queue<string>();
         protected static ManualResetEvent playController = new ManualResetEvent(false);
         
-        protected string soundExtension = ".mp4";
+        //protected const string soundExtension = ".mp4";
 
         /// <summary>
         /// 지금 재생할 곡 등록

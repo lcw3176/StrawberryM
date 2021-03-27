@@ -11,8 +11,6 @@ namespace StrawberryM.Services
 
             event EventHandler NotificationReceived;
 
-            //void Initialize();
-
             void ScheduleNotification(AppState state, string title);
 
             void ReceiveNotification(string resourceName);

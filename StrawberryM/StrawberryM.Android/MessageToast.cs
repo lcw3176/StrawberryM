@@ -6,7 +6,7 @@ using Xamarin.Forms;
 [assembly: Dependency(typeof(MessageToast))]
 namespace StrawberryM.Droid
 {
-    class MessageToast : IMessage
+    class MessageToast : IMessageToast
     {
         public void Alert(string message)
         {

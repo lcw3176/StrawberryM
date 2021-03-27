@@ -1,15 +1,10 @@
-﻿using Google.Apis.Services;
-using Google.Apis.YouTube.v3;
-using StrawberryM.Model;
+﻿using StrawberryM.Model;
 using StrawberryM.Services;
 using System;
 using System.Collections.ObjectModel;
-using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
+using System.Web;
 using Xamarin.Forms;
-using YoutubeExplode;
-using YoutubeExplode.Videos.Streams;
 
 namespace StrawberryM.ViewModel
 {
@@ -28,10 +23,24 @@ namespace StrawberryM.ViewModel
             }
         }
 
+        private YoutubeService service = new YoutubeService();
+
         public Command searchCommand { get; }
         public Command downloadCommand { get; }
 
-        public BrowseViewModel()
+        private static BrowseViewModel instance;
+        public static BrowseViewModel GetInstance()
+        {
+            if(instance == null)
+            {
+                instance = new BrowseViewModel();
+            }
+
+            return instance;
+
+        }
+
+        private BrowseViewModel()
         {
             youtubeSearch = new ObservableCollection<Youtube>();
             searchCommand = new Command(SearchExecuteCommand);
@@ -42,35 +51,27 @@ namespace StrawberryM.ViewModel
         /// 노래 클릭 시 다운로드
         /// </summary>
         /// <param name="videoTitle"></param>
-        private void DownloadExecuteCommand(object videoTitle)
+        private async void DownloadExecuteCommand(object videoTitle)
         {
             string id = youtubeSearch.FirstOrDefault(e => e.title == videoTitle.ToString()).id;
-            Download(id, videoTitle.ToString());
+            string reshapedVideoName = await service.Download(id, videoTitle.ToString());
+
+            if(!string.IsNullOrEmpty(reshapedVideoName))
+            {
+                EnqueuePlayList(reshapedVideoName);
+            }
         }
 
 
         /// <summary>
         /// 유튜브에서 노래 검색
         /// </summary>
-        private async void SearchExecuteCommand()
+        public async void SearchExecuteCommand(object obj)
         {
             youtubeSearch.Clear();
+            SearchText = obj.ToString();
 
-            string apiKey = Environment.GetEnvironmentVariable("YOUTUBE_API_KEY", EnvironmentVariableTarget.User);
-            string appName = Environment.GetEnvironmentVariable("YOUTUBE_Application", EnvironmentVariableTarget.User);
-
-            var youtube = new YouTubeService(new BaseClientService.Initializer()
-            {
-                ApiKey = apiKey,
-                ApplicationName = appName
-            });
-
-            var request = youtube.Search.List("snippet");
-
-            request.Q = SearchText;
-            request.MaxResults = 50;
-
-            var result = await request.ExecuteAsync();
+            var result = await service.Search(obj.ToString());
 
             foreach (var item in result.Items)
             {
@@ -80,61 +81,13 @@ namespace StrawberryM.ViewModel
                     youtubeSearch.Add(new Youtube()
                     {
                         id = item.Id.VideoId,
-                        title = item.Snippet.Title,
+                        title = HttpUtility.HtmlDecode(item.Snippet.Title),
                         downloadCommand = this.downloadCommand,
                     });
                 }
             }
 
-            youtube.Dispose();
+            
         }
-
-        private bool isBusy = false;
-
-        /// <summary>
-        /// 노래 다운로드 (사운드만 추출해서 다운)
-        /// </summary>
-        /// <param name="videoId">비디오 고유 아이디</param>
-        /// <param name="videoName">비디오 제목</param>
-        private async void Download(string videoId, string videoName)
-        {
-            try
-            {
-                if(!isBusy)
-                {
-                    isBusy = true;
-                    var youtube = new YoutubeClient();
-                    var streamManifest = await youtube.Videos.Streams.GetManifestAsync(videoId);
-                    var streamInfo = streamManifest.GetMuxed().WithHighestVideoQuality();
-                    Regex pattern = new Regex(@"[\/:*?<>|]");
-                    videoName = pattern.Replace(videoName, string.Empty);
-                    string rootPath = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
-                    string musicDirectory = Path.Combine(rootPath, "playList");
-
-                    if (streamInfo != null)
-                    {
-                        await youtube.Videos.Streams.DownloadAsync(streamInfo, musicDirectory + "/" + videoName + soundExtension);
-                        EnqueuePlayList(videoName);
-                        isBusy = false;
-                    }
-                }
-
-                else
-                {
-                    DependencyService.Get<IMessage>().Alert("현재 다운중");
-                }
-               
-
-            }
-
-            catch
-            {
-                DependencyService.Get<IMessage>().Alert("접근 제한 알림");
-                isBusy = false;
-            }
-
-        }
-
-
     }
 }

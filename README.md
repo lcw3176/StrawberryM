@@ -25,6 +25,10 @@ C# Xamarin을 이용한 안드로이드 음악 재생 앱
 * 노래 재생 화면에서 LP판이 재생 상태에 맞게 회전
 * 재생 모드 바뀔 때마다 토스트 메세지 띄움
 
+#### 수정(2021.03.27)
+* 노티피케이션 뷰 수정
+* 랭킹 검색 추가
+* 랭킹 순위 터치시 바로 검색
 
 ### 작동 모습
 #### 내 노래 목록, 현재 재생곡, 노래 검색
@@ -40,4 +44,12 @@ C# Xamarin을 이용한 안드로이드 음악 재생 앱
   <image width="250" src=https://user-images.githubusercontent.com/59993347/94995036-74769200-05d6-11eb-9309-19f858c5ac9e.jpg>
   <image width="250" src=https://user-images.githubusercontent.com/59993347/94995038-75a7bf00-05d6-11eb-8b26-a920283a490d.jpg>
 </div>
+
+#### 수정된 뷰(축소), 수정된 뷰(확대), 랭킹
+<div>
+  <image width="250" src=https://user-images.githubusercontent.com/59993347/112708179-eb407800-8ef3-11eb-96c6-e612a9d5fcec.jpg>
+  <image width="250" src=https://user-images.githubusercontent.com/59993347/112708178-ea0f4b00-8ef3-11eb-8095-c0adccc079bc.jpg>
+  <image width="250" src=https://user-images.githubusercontent.com/59993347/112708180-ebd90e80-8ef3-11eb-989e-75f5369dc1ae.jpg>
+</div>
+
 

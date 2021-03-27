@@ -22,7 +22,7 @@ namespace StrawberryM.ViewModel
         private bool isRotate = false;
         INotificationManager notificationManager;
 
-
+        private PropertyService service = new PropertyService();
         public Command changePlayMode { get; set; }
         public Command playStateCommand { get; set; }
         public Command sliderDragCommand { get; set; }
@@ -131,11 +131,11 @@ namespace StrawberryM.ViewModel
                 ShowNotification(evtData.ResourceName);
             };
 
-            playStateCommand = new Command(playStateChangeCommand);
-            sliderDragCommand = new Command(sliderDragExecuteCommand);
-            changePlayMode = new Command(changePlayModecommand);
-            beforeSongCommand = new Command(beforeSongExecuteCommand);
-            nextSongCommand = new Command(nextSongExecuteCommand);
+            playStateCommand = new Command(PlayStateChangeCommand);
+            sliderDragCommand = new Command(SliderDragExecuteCommand);
+            changePlayMode = new Command(ChangePlayModecommand);
+            beforeSongCommand = new Command(BeforeSongExecuteCommand);
+            nextSongCommand = new Command(NextSongExecuteCommand);
 
             rotateController = new ManualResetEvent(false);
             sliderController = new ManualResetEvent(false);
@@ -163,21 +163,21 @@ namespace StrawberryM.ViewModel
         /// <summary>
         /// 다음곡으로 넘기기 버튼
         /// </summary>
-        public void nextSongExecuteCommand()
+        public void NextSongExecuteCommand()
         {
             if(audio != null)
             {
                 
-                int nextIndex = PlayListCollection.FirstOrDefault(e => e.name == title).index + 1;
+                int nextIndex = BasePlayListCollection.FirstOrDefault(e => e.name == title).index + 1;
 
                 // 만약 마지막 노래 재생이 끝난 상황이라면
                 // 처음 곡으로 돌려보낸다.
-                if (nextIndex == PlayListCollection.Count)
+                if (nextIndex == BasePlayListCollection.Count)
                 {
                     nextIndex = 0;
                 }
 
-                EnqueueNowPlay(PlayListCollection[nextIndex].name);
+                EnqueueNowPlay(BasePlayListCollection[nextIndex].name);
             }
 
         }
@@ -185,20 +185,20 @@ namespace StrawberryM.ViewModel
         /// <summary>
         /// 이전곡으로 넘기기 버튼
         /// </summary>
-        public void beforeSongExecuteCommand()
+        public void BeforeSongExecuteCommand()
         {
             if(audio != null)
             {
-                int beforeIndex = PlayListCollection.FirstOrDefault(e => e.name == title).index - 1;
+                int beforeIndex = BasePlayListCollection.FirstOrDefault(e => e.name == title).index - 1;
 
                 // 만약 현재 재생곡이 처음 노래였다면
                 // 마지막 곡으로 보낸다.
                 if (beforeIndex < 0)
                 {
-                    beforeIndex = PlayListCollection.Count - 1;
+                    beforeIndex = BasePlayListCollection.Count - 1;
                 }
 
-                EnqueueNowPlay(PlayListCollection[beforeIndex].name);
+                EnqueueNowPlay(BasePlayListCollection[beforeIndex].name);
             }
 
         }
@@ -206,24 +206,24 @@ namespace StrawberryM.ViewModel
         /// <summary>
         /// 재생 모드 변경
         /// </summary>
-        private void changePlayModecommand(object playMode)
+        private void ChangePlayModecommand(object playMode)
         {
             if(playMode.ToString().Equals("Whole"))
             {
                 NowPlay.playMode = PlayMode.Whole;
-                DependencyService.Get<IMessage>().Alert("전체 반복 모드");
+                DependencyService.Get<IMessageToast>().Alert("전체 반복 모드");
             }
 
             if (playMode.ToString().Equals("One"))
             {
                 NowPlay.playMode = PlayMode.One;
-                DependencyService.Get<IMessage>().Alert("한곡 반복 모드");
+                DependencyService.Get<IMessageToast>().Alert("한곡 반복 모드");
             }
 
             if (playMode.ToString().Equals("Random"))
             {
                 NowPlay.playMode = PlayMode.Random;
-                DependencyService.Get<IMessage>().Alert("랜덤 재생 모드");
+                DependencyService.Get<IMessageToast>().Alert("랜덤 재생 모드");
             }
 
         }
@@ -231,7 +231,7 @@ namespace StrawberryM.ViewModel
         /// <summary>
         /// 유저가 슬라이더바 조작했을 시
         /// </summary>
-        private void sliderDragExecuteCommand()
+        private void SliderDragExecuteCommand()
         {
             audio.Seek(sliderValue);
         }
@@ -240,7 +240,7 @@ namespace StrawberryM.ViewModel
         /// <summary>
         /// 재생 상태 변경
         /// </summary>
-        public void playStateChangeCommand()
+        public void PlayStateChangeCommand()
         {
             if(audio == null)
             {
@@ -251,16 +251,17 @@ namespace StrawberryM.ViewModel
             {
                 isRotate = false;
 
-                DependencyService.Get<IFocus>().ReleaseAudioResources();
+                DependencyService.Get<IAudioFocus>().ReleaseAudioResources();
                 audio.Pause();
                 playButtonImage = "play.jpg";
+                service.SetLastInfo(NowPlay.playMode.ToString());
             }
 
             else
             {
                 isRotate = true;
 
-                DependencyService.Get<IFocus>().RequestFocus();
+                DependencyService.Get<IAudioFocus>().RequestFocus();
                 audio.Play();
                 playButtonImage = "stop.jpg";
 
@@ -279,7 +280,7 @@ namespace StrawberryM.ViewModel
         {
             if (audio.IsPlaying)
             {
-                DependencyService.Get<IFocus>().ReleaseAudioResources();
+                DependencyService.Get<IAudioFocus>().ReleaseAudioResources();
                 audio.Pause();
                 playButtonImage = "play.jpg";
             }
@@ -346,14 +347,18 @@ namespace StrawberryM.ViewModel
         /// <param name="title"></param>
         private void PlayAudio(string title)
         {
-            DependencyService.Get<IFocus>().ReleaseAudioResources();
+            DependencyService.Get<IAudioFocus>().ReleaseAudioResources();
+            
+            FileService fileService = new FileService();
 
             audio = CrossSimpleAudioPlayer.Current;
-            audio.Load(GetStreamFromFile(title));
+            audio.Load(fileService.GetStreamFromFile(title));
+
+            NowPlay.path = fileService.nowFilePath;
             audio.Play();
 
             
-            DependencyService.Get<IFocus>().RequestFocus();
+            DependencyService.Get<IAudioFocus>().RequestFocus();
             playButtonImage = "stop.jpg";
 
             totalTime = TimeSpan.FromSeconds(audio.Duration);
@@ -364,17 +369,6 @@ namespace StrawberryM.ViewModel
             sliderController.Set();
 
             SongInfoChanged();
-        }
-
-        private Stream GetStreamFromFile(string filename)
-        {
-            string rootPath = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
-            string musicDirectory = Path.Combine(rootPath, "playList");
-            string filePath = Path.Combine(musicDirectory, filename + soundExtension);
-
-            var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
-
-            return stream;
         }
 
 
@@ -417,15 +411,15 @@ namespace StrawberryM.ViewModel
 
             if (NowPlay.playMode.Equals(PlayMode.Whole))
             {
-                nextSongExecuteCommand();
+                NextSongExecuteCommand();
             }
 
             if (NowPlay.playMode.Equals(PlayMode.Random))
             {
                 Random rand = new Random();
-                int nextIndex = rand.Next(0, PlayListCollection.Count);
+                int nextIndex = rand.Next(0, BasePlayListCollection.Count);
 
-                EnqueueNowPlay(PlayListCollection[nextIndex].name);
+                EnqueueNowPlay(BasePlayListCollection[nextIndex].name);
             }
         }
 
@@ -444,17 +438,17 @@ namespace StrawberryM.ViewModel
             
             if (resourceName.Equals("playButton"))
             {
-                playStateChangeCommand();
+                PlayStateChangeCommand();
             }
             
             if (resourceName.Equals("beforeButton"))
             {
-                beforeSongExecuteCommand();
+                BeforeSongExecuteCommand();
             }
             
             if (resourceName.Equals("nextButton"))
             {
-                nextSongExecuteCommand();
+                NextSongExecuteCommand();
             }
             
             if (resourceName.Equals("closeButton"))
@@ -462,6 +456,13 @@ namespace StrawberryM.ViewModel
                 CloseCommand();
                 NowAppState.state = AppState.onClose;
                 notificationManager.ScheduleNotification(NowAppState.state, title);
+
+                // 정지 구간 기록
+                if (!audio.IsPlaying)
+                {
+                    service.SetLastInfo(NowPlay.playMode.ToString());
+                }
+
             }
             
             // 포커즈 잃었거나 이어폰 분리 시
@@ -480,7 +481,7 @@ namespace StrawberryM.ViewModel
             if (audio.IsPlaying)
             {
                 audio.Pause();
-                DependencyService.Get<IFocus>().ReleaseAudioResources();
+                DependencyService.Get<IAudioFocus>().ReleaseAudioResources();
                 playButtonImage = "play.jpg";
             }
         }
@@ -531,6 +532,12 @@ namespace StrawberryM.ViewModel
 
                 NowAppState.state = AppState.onSleep;
                 notificationManager.ScheduleNotification(NowAppState.state, title);
+
+                // 플레이 중이 아니라면 정지 구간 기록
+                if(!audio.IsPlaying)
+                {
+                    service.SetLastInfo(NowPlay.playMode.ToString());
+                }
             }
 
             // 재생할 노래가 정해지지 않았을땐 notification 띄우지 않음

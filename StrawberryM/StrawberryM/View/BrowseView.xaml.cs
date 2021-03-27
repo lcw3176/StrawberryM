@@ -15,7 +15,7 @@ namespace StrawberryM.View
         public BrowseView()
         {
             InitializeComponent();
-            BindingContext = new BrowseViewModel();
+            BindingContext = BrowseViewModel.GetInstance();
         }
     }
 }

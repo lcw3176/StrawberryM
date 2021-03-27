@@ -1,5 +1,4 @@
-﻿using System;
-using Android.Content;
+﻿using Android.Content;
 using StrawberryM.Droid;
 using StrawberryM.Services;
 
@@ -7,7 +6,7 @@ using StrawberryM.Services;
 
 namespace StrawberryM.Droid
 {
-    class ForegroundHelper : IForeground
+    class ForegroundHelper : IForegroundHelper
     {
         public void StartService()
         {

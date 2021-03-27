@@ -8,7 +8,7 @@ using Xamarin.Forms;
 [assembly: Dependency(typeof(StrawberryM.Droid.AudioFocus))]
 namespace StrawberryM.Droid
 {
-    class AudioFocus : IFocus
+    class AudioFocus : IAudioFocus
     {
         AudioManager manager;
         AudioManager.IOnAudioFocusChangeListener listener;
@@ -22,6 +22,12 @@ namespace StrawberryM.Droid
                 switch (focusChange)
                 {
                     case Android.Media.AudioFocus.Loss:
+                        DependencyService.Get<INotificationManager>().ReceiveNotification("stopNow");
+                        break;
+                    case Android.Media.AudioFocus.LossTransient:
+                        DependencyService.Get<INotificationManager>().ReceiveNotification("stopNow");
+                        break;
+                    case Android.Media.AudioFocus.LossTransientCanDuck:
                         DependencyService.Get<INotificationManager>().ReceiveNotification("stopNow");
                         break;
                     default:

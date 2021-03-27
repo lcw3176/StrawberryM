@@ -1,19 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
+﻿
 using Android.App;
 using Android.Content;
-using Android.Graphics;
+using Android.Media;
 using Android.OS;
+using Android.Provider;
 using Android.Runtime;
 using Android.Support.V4.App;
-using Android.Views;
-using Android.Widget;
-using StrawberryM.Droid;
+using AndroidX.Core.App;
 using StrawberryM.Model;
-using Xamarin.Essentials;
+using static AndroidX.Media.App.NotificationCompat;
 using AndroidApp = Android.App.Application;
 
 namespace StrawberryM.Droid
@@ -65,34 +60,34 @@ namespace StrawberryM.Droid
             PendingIntent titlePendingIntent = PendingIntent.GetActivity(AndroidApp.Context, 5, titleIntent, PendingIntentFlags.UpdateCurrent);
 
 
-            RemoteViews view = new RemoteViews(AppInfo.PackageName, Resource.Layout.notification);
-            view.SetTextViewText(Resource.Id.title, NowPlay.Title);
-            view.SetOnClickPendingIntent(Resource.Id.playButton, playPendingIntent);
-            view.SetOnClickPendingIntent(Resource.Id.beforeButton, beforePendingIntent);
-            view.SetOnClickPendingIntent(Resource.Id.nextButton, nextPendingIntent);
-            view.SetOnClickPendingIntent(Resource.Id.closeButton, closePendingIntent);
-            view.SetOnClickPendingIntent(Resource.Id.title, titlePendingIntent);
+            NotificationCompat.Builder builder = new NotificationCompat.Builder(AndroidApp.Context, channelId)
+                .SetContentText(NowPlay.Title)
+                .SetLargeIcon(ThumbnailUtils.CreateVideoThumbnail(NowPlay.path, ThumbnailKind.MiniKind))
+                .SetSmallIcon(Resource.Drawable.icon)
+                .SetContentIntent(titlePendingIntent)
+                .SetShowWhen(false)
+                .SetAutoCancel(true)
+                .AddAction(Resource.Drawable.prev_mini, "", beforePendingIntent);
 
             if (NowPlay.Audio.IsPlaying)
             {
-                view.SetImageViewResource(Resource.Id.playButton, Resource.Drawable.stop);
+                builder.AddAction(Resource.Drawable.pause_mini, "", playPendingIntent);
             }
 
             else
             {
-                view.SetImageViewResource(Resource.Id.playButton, Resource.Drawable.play);
+                builder.AddAction(Resource.Drawable.play_mini, "", playPendingIntent);
             }
 
-
-            NotificationCompat.Builder builder = new NotificationCompat.Builder(AndroidApp.Context, channelId)
-                .SetContent(view)
-                .SetLargeIcon(BitmapFactory.DecodeResource(AndroidApp.Context.Resources, Resource.Drawable.icon))
-                .SetSmallIcon(Resource.Drawable.icon);
+            builder.AddAction(Resource.Drawable.next_mini, "", nextPendingIntent)
+                   .AddAction(Resource.Drawable.close_mini, "", closePendingIntent)
+                   .SetStyle(new MediaStyle()
+                   .SetShowActionsInCompactView(0, 1, 2));
 
             var notification = builder.Build();
             notification.Flags = NotificationFlags.NoClear;
 
-            var manager = (NotificationManager)AndroidApp.Context.GetSystemService(AndroidApp.NotificationService);
+            var manager = (Android.App.NotificationManager)AndroidApp.Context.GetSystemService(AndroidApp.NotificationService);
 
             if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
             {
@@ -110,5 +105,7 @@ namespace StrawberryM.Droid
 
             StartForeground(serviceNotifID, notification);
         }
+
+
     }
 }
